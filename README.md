@@ -31,7 +31,7 @@ Native Stack (recommended for performance)
 - Pros: better performance and native look. Cons: fewer header/custom-animation customizations.
 
 Example:
-```
+```javascript
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -55,7 +55,7 @@ JS Stack (createStackNavigator)
 - Use when you need advanced customization unavailable in native-stack.
 
 Example:
-```
+```javascript
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -78,7 +78,7 @@ useNavigation Hook
 - Gives access to navigation methods (navigate, goBack, replace, setOptions, etc.) inside any component (not only screen components).
 
 Basic example:
-```
+```javascript
 import { useNavigation } from '@react-navigation/native';
 import { Button } from 'react-native';
 
@@ -98,3 +98,69 @@ Notes
 - Choose native-stack for performance and platform-native behavior; choose createStackNavigator for maximum customization.
 - useNavigation works with both navigator implementations.
 - When using nested navigators, prefer strongly typed param lists to avoid runtime route/name errors.
+
+# 116. React Context API
+
+### Prop Drilling
+
+Kalau kamu punya data seperti theme = "dark" atau user, lalu komponen yang butuh data itu ada jauh di bawah:
+
+```html
+<App>
+  <Navbar>
+    <Menu>
+      <MenuItem>
+        <Icon /> ← butuh theme
+```
+
+Tanpa Context, kamu harus kirim props terus menerus:
+
+```html
+<App theme="dark">
+  <Navbar theme="dark">
+    <Menu theme="dark">
+      <MenuItem theme="dark">
+        <Icon theme="dark" />
+```
+
+### Solusi: React Context API
+
+Dengan Context, kamu bisa membuat satu sumber data, lalu komponen apa pun bisa mengambil data itu langsung, tanpa props berantai.
+
+### Contoh Sederhana
+1. Buat Context
+```javascript
+import { createContext } from "react";
+
+export const ThemeContext = createContext();
+```
+2. Provider → Bungkus komponen supaya mereka bisa menerima datanya
+```javascript
+function App() {
+  return (
+    <ThemeContext.Provider value="dark">
+      <Navbar />
+    </ThemeContext.Provider>
+  );
+}
+```
+3. Gunakan di komponen mana saja (useContext → Ambil data dari context)
+```javascript
+import { useContext } from "react";
+import { ThemeContext } from "./ThemeContext";
+
+export default function Navbar() {
+  const theme = useContext(ThemeContext);
+  return <div>Theme sekarang: {theme}</div>;
+}
+```
+### Kapan Harus Memakai Context?
+
+Gunakan Context kalau state dipakai oleh banyak komponen seperti:
+- Autentikasi user (user login)s
+- Theme (dark/light)
+- Bahasa aplikasi (i18n)
+- Cart (shopping cart)
+- Pengaturan aplikasi global
+
+Tidak cocok untuk state yang sering berubah cepat (misal: koordinat mouse, animasi), karena Context akan re-render semua komponen yang memakai context tersebut.
